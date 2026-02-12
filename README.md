@@ -8,9 +8,9 @@ This demo showcases a simple yet effective smartwatch app that allows users to c
 
 # Preview
 <div>
-  <img src="./screenshots/Image1.png" width="25%"/>
-  <img src="./screenshots/Image2.png" width="25%"/>
-  <img src="./screenshots/Image3.png" width="25%"/>
+  <img src="./Screenshots/image1.png" width="25%"/>
+  <img src="./Screenshots/image2.png" width="25%"/>
+  <img src="./Screenshots/image3.png" width="25%"/>
 </div>
 
 # Use Cases
@@ -75,5 +75,6 @@ Keyboard is not working on previewer
 
 Currency Converter is distributed under the terms of the MIT License.
 See the [LICENSE](LICENSE) for more information.
+
 
 
