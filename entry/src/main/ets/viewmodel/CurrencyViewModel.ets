@@ -1,7 +1,7 @@
 import { CurrencyData, FrankfurterResponse } from './CurrencyData';
 import { rcp } from '@kit.RemoteCommunicationKit';
 
-const API_BASE_URL = `https://` + $r('app.string.core_url');
+const API_BASE_URL = 'https://api.frankfurter.app';
 const session = rcp.createSession();
 
 @Observed
@@ -72,44 +72,54 @@ export class CurrencyViewModel {
     return this.allCurrencyData.find(c => c.code === code);
   }
 
-  // Positive decimal numbers only; rejects empty / NaN / negative / Infinity.
   static isValidAmount(amount: string): boolean {
-    if (!amount) return false;
-    if (!/^\d+(\.\d+)?$/.test(amount.trim())) return false;
+    if (!amount) {
+      return false;
+    }
+    if (!/^\d+(\.\d+)?$/.test(amount.trim())) {
+      return false;
+    }
     const n = parseFloat(amount);
     return Number.isFinite(n) && n >= 0;
   }
 
-  // Up to 4 decimals, trim trailing zeros, but always show at least 2.
   static formatAmount(value: number): string {
-    if (!Number.isFinite(value)) return '0.00';
+    if (!Number.isFinite(value)) {
+      return '0.00';
+    }
     const fixed = value.toFixed(4);
     const trimmed = fixed.replace(/0+$/, '').replace(/\.$/, '');
     const dot = trimmed.indexOf('.');
-    if (dot === -1) return trimmed + '.00';
+    if (dot === -1) {
+      return `${trimmed}.00`;
+    }
     const decimals = trimmed.length - dot - 1;
-    if (decimals < 2) return trimmed + '0'.repeat(2 - decimals);
+    if (decimals < 2) {
+      return `${trimmed}${'0'.repeat(2 - decimals)}`;
+    }
     return trimmed;
   }
 
   calculateConversion(amount: string): string {
-    if (!CurrencyViewModel.isValidAmount(amount)) return '0.00';
+    if (!CurrencyViewModel.isValidAmount(amount)) {
+      return '0.00';
+    }
     const base = this._selectedBaseCurrency;
     const target = this._selectedTargetCurrency;
-    if (!base || !target || base.rate <= 0) return '0.00';
+    if (!base || !target || base.rate <= 0) {
+      return '0.00';
+    }
     const rate = target.rate / base.rate;
     return CurrencyViewModel.formatAmount(parseFloat(amount) * rate);
   }
 
-  // Validate a Frankfurter payload and merge rates into `allCurrencyData`.
-  // Currencies missing from the response keep their previous (fallback) rate,
-  // so a malformed/partial response can never zero them out.
-  // Returns true if at least one rate was applied.
   applyRates(response: FrankfurterResponse | null | undefined): boolean {
-    if (!response || !response.rates || typeof response.rates !== 'object') return false;
-    // We always request `from=USD`; reject any payload claiming a different base
-    // so a malformed/swapped response can't silently rewrite rates.
-    if (response.base !== 'USD') return false;
+    if (!response || !response.rates || typeof response.rates !== 'object') {
+      return false;
+    }
+    if (response.base !== 'USD') {
+      return false;
+    }
     const baseCode: string = response.base;
     let updated = 0;
     this.allCurrencyData.forEach((currency) => {

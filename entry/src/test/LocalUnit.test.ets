@@ -77,7 +77,9 @@ export default function localUnitTest() {
       it('finds a known code', 0, () => {
         const c = vm.getCurrencyByCode('USD');
         expect(c === undefined).assertFalse();
-        if (c) expect(c.name).assertEqual('US Dollar');
+        if (c) {
+          expect(c.name).assertEqual('US Dollar');
+        }
       });
       it('returns undefined for an unknown code', 0, () => {
         expect(vm.getCurrencyByCode('XYZ') === undefined).assertTrue();
@@ -95,9 +97,15 @@ export default function localUnitTest() {
         const usd = vm.getCurrencyByCode('USD');
         const eur = vm.getCurrencyByCode('EUR');
         const tryC = vm.getCurrencyByCode('TRY');
-        if (usd) expect(usd.rate).assertEqual(1.0);
-        if (eur) expect(eur.rate).assertEqual(0.95);
-        if (tryC) expect(tryC.rate).assertEqual(33.0);
+        if (usd) {
+          expect(usd.rate).assertEqual(1.0);
+        }
+        if (eur) {
+          expect(eur.rate).assertEqual(0.95);
+        }
+        if (tryC) {
+          expect(tryC.rate).assertEqual(33.0);
+        }
       });
       it('keeps fallback rates for currencies missing from the response', 0, () => {
         const vm = new CurrencyViewModel();
@@ -109,7 +117,9 @@ export default function localUnitTest() {
         };
         vm.applyRates(payload);
         const jpyAfter = vm.getCurrencyByCode('JPY');
-        if (jpyAfter) expect(jpyAfter.rate).assertEqual(fallbackJpy);
+        if (jpyAfter) {
+          expect(jpyAfter.rate).assertEqual(fallbackJpy);
+        }
       });
       it('rejects payload with non-USD base and preserves rates', 0, () => {
         const vm = new CurrencyViewModel();
@@ -121,7 +131,9 @@ export default function localUnitTest() {
         };
         expect(vm.applyRates(payload)).assertFalse();
         const eurAfter = vm.getCurrencyByCode('EUR');
-        if (eurAfter) expect(eurAfter.rate).assertEqual(fallbackEur);
+        if (eurAfter) {
+          expect(eurAfter.rate).assertEqual(fallbackEur);
+        }
       });
       it('rejects null payload', 0, () => {
         const vm = new CurrencyViewModel();
@@ -138,8 +150,12 @@ export default function localUnitTest() {
         vm.applyRates(payload);
         const eurAfter = vm.getCurrencyByCode('EUR');
         const gbpAfter = vm.getCurrencyByCode('GBP');
-        if (eurAfter) expect(eurAfter.rate).assertEqual(fallbackEur);
-        if (gbpAfter) expect(gbpAfter.rate).assertEqual(0.81);
+        if (eurAfter) {
+          expect(eurAfter.rate).assertEqual(fallbackEur);
+        }
+        if (gbpAfter) {
+          expect(gbpAfter.rate).assertEqual(0.81);
+        }
       });
     });
   });

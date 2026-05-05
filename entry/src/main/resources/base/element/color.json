@@ -43,6 +43,22 @@
     {
       "name": "currency_bg",
       "value": "#2050E0"
+    },
+    {
+      "name": "currency_item_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "currency_code",
+      "value": "#333333"
+    },
+    {
+      "name": "currency_name",
+      "value": "#99000000"
+    },
+    {
+      "name": "currency_check",
+      "value": "#007DFF"
     }
   ]
 }

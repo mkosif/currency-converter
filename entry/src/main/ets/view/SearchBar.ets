@@ -1,7 +1,7 @@
 @Component
 export struct SearchBar {
   @Prop placeholder: string = '';
-  @Prop color: string|Resource
+  @Prop color: string | Resource
   onSearch: (type: string) => void = () => {
   };
 
@@ -11,7 +11,7 @@ export struct SearchBar {
         src: $r('app.media.ic_search')
       })
       .placeholderColor($r('app.color.search_placeholder'))
-      .placeholderFont({ style: FontStyle.Normal, size: '14vp'})
+      .placeholderFont({ style: FontStyle.Normal, size: '14vp' })
       .fontColor($r('app.color.search_font'))
       .width('55%')
       .height('35vp')
@@ -25,4 +25,3 @@ export struct SearchBar {
       })
   }
 }
-

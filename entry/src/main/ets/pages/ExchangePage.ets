@@ -31,19 +31,16 @@ export struct ExchangePage {
   @Consume @Watch('OnSelected') selectedTargetCurrency: CurrencyData
   @Consume viewModel: CurrencyViewModel
   @Consume @Watch('OnTriggerMechanism') triggerMechanism: number
-  private color1: common2D.Color = {
+  private readonly color1: common2D.Color = {
     alpha: 255,
     red: 32,
     green: 80,
     blue: 224
   };
-  @State drawingColorFilterFirst: ColorFilter | undefined =
+  private readonly drawingColorFilterFirst: ColorFilter | undefined =
     drawing.ColorFilter.createBlendModeColorFilter(this.color1, drawing.BlendMode.SRC_IN);
   @State updateStatus: UpdateStatus = 'idle';
   private statusResetTimer: number = -1;
-  // Bumped on every new update tap and on aboutToDisappear; an in-flight
-  // fetch's `.then()` checks its captured id against this and bails out if
-  // it has been superseded or the page has gone away.
   private updateRequestId: number = 0;
 
   aboutToAppear(): void {
@@ -85,14 +82,18 @@ export struct ExchangePage {
   }
 
   private updateLabel(): Resource {
-    if (this.updateStatus === 'loading') return $r('app.string.update_loading');
-    if (this.updateStatus === 'updated') return $r('app.string.updated');
-    if (this.updateStatus === 'error') return $r('app.string.update_failed');
+    if (this.updateStatus === 'loading') {
+      return $r('app.string.update_loading');
+    }
+    if (this.updateStatus === 'updated') {
+      return $r('app.string.updated');
+    }
+    if (this.updateStatus === 'error') {
+      return $r('app.string.update_failed');
+    }
     return $r('app.string.update');
   }
 
-  // Loading / updated / error share the muted (gray) style; idle uses the
-  // active blue style. Error keeps muted style so it doesn't look like a CTA.
   private updateFontColor(): Resource {
     return this.updateStatus === 'idle'
       ? $r('app.color.update_font')
@@ -106,7 +107,9 @@ export struct ExchangePage {
   }
 
   private onUpdateTap() {
-    if (this.updateStatus === 'loading') return;
+    if (this.updateStatus === 'loading') {
+      return;
+    }
     if (this.statusResetTimer !== -1) {
       clearTimeout(this.statusResetTimer);
       this.statusResetTimer = -1;
@@ -114,12 +117,15 @@ export struct ExchangePage {
     const requestId = ++this.updateRequestId;
     this.updateStatus = 'loading';
     this.viewModel.fetchAndUpdateRates().then((ok: boolean) => {
-      // Stale guard: page gone or a newer tap has taken over.
-      if (requestId !== this.updateRequestId) return;
+      if (requestId !== this.updateRequestId) {
+        return;
+      }
       this.updateStatus = ok ? 'updated' : 'error';
       this.recalcTarget();
       this.statusResetTimer = setTimeout(() => {
-        if (requestId !== this.updateRequestId) return;
+        if (requestId !== this.updateRequestId) {
+          return;
+        }
         if (this.updateStatus !== 'loading') {
           this.updateStatus = 'idle';
         }

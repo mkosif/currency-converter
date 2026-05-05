@@ -6,12 +6,20 @@ export function SplashPageBuilder(name: string, param: Object) {
 @Component
 export struct SplashPage {
   @Consume('pageInfos') pageInfos: NavPathStack;
-  controller: TextClockController = new TextClockController()
+  private navTimer: number = -1;
 
   aboutToAppear(): void {
-    setTimeout(() => {
+    this.navTimer = setTimeout(() => {
+      this.navTimer = -1;
       this.pageInfos.pushPathByName('ExchangePage', null);
-    }, 2000)
+    }, 2000);
+  }
+
+  aboutToDisappear(): void {
+    if (this.navTimer !== -1) {
+      clearTimeout(this.navTimer);
+      this.navTimer = -1;
+    }
   }
 
   build() {

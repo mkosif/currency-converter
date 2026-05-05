@@ -19,12 +19,12 @@ export struct CurrencyItem {
         Text(this.currency.code)
           .fontSize(13)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#333333')
+          .fontColor($r('app.color.currency_code'))
 
         Text(this.currency.name)
           .fontSize(11)
           .margin({ left: 12 })
-          .fontColor('#99000000')
+          .fontColor($r('app.color.currency_name'))
       }
       .justifyContent(FlexAlign.Start)
       .layoutWeight(1)
@@ -34,12 +34,12 @@ export struct CurrencyItem {
           .width(24)
           .height(24)
           .margin({ right: 16 })
-          .fillColor('#007DFF')
+          .fillColor($r('app.color.currency_check'))
       }
     }
     .width($r('app.string.w_100'))
     .height(48)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.currency_item_bg'))
     .onClick(() => {
       if (this.onItemClick) {
         this.onItemClick(this.currency);

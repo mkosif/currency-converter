@@ -1,6 +1,4 @@
-> **Note:** To access all shared projects, get information about environment setup, and view other guides, please visit [Explore-In-HMOS-Wearable Index](https://github.com/Explore-In-HMOS-Wearable/hmos-index).
-
-# Currency Converter  App
+# Currency Converter App
 
 CurrencyConverter is a fully functional wearable watch application including currency convert functionality built for **HarmonyOS NEXT wearable devices**,
 developed using **ArkTS**.
@@ -100,6 +98,3 @@ Local unit tests cover `CurrencyViewModel` pure logic (input validation, decimal
 
 Currency Converter is distributed under the terms of the MIT License.
 See the [LICENSE](LICENSE) for more information.
-
-
-

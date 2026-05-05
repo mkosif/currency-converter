@@ -13,7 +13,7 @@ export function SelectCurrencyPageBuilder(name: string, param: Object) {
 export struct SelectCurrencyPage {
   @Consume('pageInfos') pageInfos: NavPathStack;
   @State searchResult: CurrencyData[] = [];
-  @State currentCurrencyType: string = '';
+  private currentCurrencyType: string = '';
   @State currentCurrencyCode: string = 'TRY';
   @Consume viewModel: CurrencyViewModel;
   @Consume selectedBaseCurrency: CurrencyData
@@ -67,7 +67,7 @@ export struct SelectCurrencyPage {
           Column() {
             Text($r('app.string.no_results'))
               .fontSize(13)
-              .fontColor('#99000000')
+              .fontColor($r('app.color.currency_name'))
               .textAlign(TextAlign.Center)
           }
           .backgroundColor(Color.White)
@@ -93,7 +93,7 @@ export struct SelectCurrencyPage {
                   }
                 })
               }
-            }, (item: CurrencyData, index: number) => item.name)
+            }, (item: CurrencyData) => item.code)
 
             ListItem() {
               Text($r('app.string.blank'))
