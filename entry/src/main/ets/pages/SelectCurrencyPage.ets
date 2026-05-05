@@ -13,7 +13,6 @@ export function SelectCurrencyPageBuilder(name: string, param: Object) {
 export struct SelectCurrencyPage {
   @Consume('pageInfos') pageInfos: NavPathStack;
   @State searchResult: CurrencyData[] = [];
-  @State searchQuery: string = '';
   @State currentCurrencyType: string = '';
   @State currentCurrencyCode: string = 'TRY';
   @Consume viewModel: CurrencyViewModel;
@@ -56,7 +55,6 @@ export struct SelectCurrencyPage {
               .id),
             color: $r('app.color.updated_bg'),
             onSearch: (value: string) => {
-              this.searchQuery = value;
               this.searchResult = this.viewModel.searchCurrency(value);
             }
           })
@@ -65,36 +63,49 @@ export struct SelectCurrencyPage {
         .height('60vp')
         .width($r('app.string.w_100'))
 
-        List() {
-          ForEach(this.searchResult, (currencyData: CurrencyData) => {
-            ListItem() {
-              CurrencyItem({
-                currency: currencyData,
-                isSelected: currencyData.code === this.currentCurrencyCode,
-                onItemClick: (currency: CurrencyData) => {
-                  if (this.currentCurrencyType === 'base') {
-                    this.viewModel.selectedBaseCurrency = currency;
-                    this.selectedBaseCurrency = currency
-                  } else if (this.currentCurrencyType === 'target') {
-                    this.viewModel.selectedTargetCurrency = currency;
-                    this.selectedTargetCurrency = currency
-                  }
-                  this.pageInfos.pop()
-                }
-              })
-            }
-          }, (item: CurrencyData, index: number) => item.name)
-
-          ListItem() {
-            Text($r('app.string.blank'))
-              .visibility(Visibility.Hidden)
-              .height('55vp')
+        if (this.searchResult.length === 0) {
+          Column() {
+            Text($r('app.string.no_results'))
+              .fontSize(13)
+              .fontColor('#99000000')
+              .textAlign(TextAlign.Center)
           }
+          .backgroundColor(Color.White)
+          .layoutWeight(1)
+          .width($r('app.string.w_100'))
+          .justifyContent(FlexAlign.Center)
+        } else {
+          List() {
+            ForEach(this.searchResult, (currencyData: CurrencyData) => {
+              ListItem() {
+                CurrencyItem({
+                  currency: currencyData,
+                  isSelected: currencyData.code === this.currentCurrencyCode,
+                  onItemClick: (currency: CurrencyData) => {
+                    if (this.currentCurrencyType === 'base') {
+                      this.viewModel.selectedBaseCurrency = currency;
+                      this.selectedBaseCurrency = currency
+                    } else if (this.currentCurrencyType === 'target') {
+                      this.viewModel.selectedTargetCurrency = currency;
+                      this.selectedTargetCurrency = currency
+                    }
+                    this.pageInfos.pop()
+                  }
+                })
+              }
+            }, (item: CurrencyData, index: number) => item.name)
+
+            ListItem() {
+              Text($r('app.string.blank'))
+                .visibility(Visibility.Hidden)
+                .height('55vp')
+            }
+          }
+          .backgroundColor(Color.White)
+          .layoutWeight(1)
+          .width($r('app.string.w_100'))
+          .height($r('app.string.w_100'))
         }
-        .backgroundColor(Color.White)
-        .layoutWeight(1)
-        .width($r('app.string.w_100'))
-        .height($r('app.string.w_100'))
       }
       .height($r('app.string.w_100'))
       .width($r('app.string.w_100'))

@@ -16,13 +16,10 @@ export class CurrencyData {
   }
 }
 
-export interface CurrencyRates {
+// Frankfurter returns `rates` as an object keyed by ISO currency code.
+export interface FrankfurterResponse {
   amount: number;
   base: string;
   date: string;
-  rates: Rate[];
-}
-
-export interface Rate {
-  code: number;
+  rates: Record<string, number>;
 }

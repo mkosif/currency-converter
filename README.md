@@ -32,6 +32,21 @@ Currency Converter Clock App is designed to make daily currency checking and con
 - common2D : Used to define RGBA color values for custom color creation.
 - drawing : Used to create a ColorFilter with blending modes to apply visual effects on images/icons.
 
+**@kit.RemoteCommunicationKit** :
+- rcp : Used to fetch live exchange rates over HTTPS from the Frankfurter API.
+
+# Networking
+
+- Provider: [Frankfurter](https://www.frankfurter.app/) — free, public, no API key required.
+- Endpoint: `https://api.frankfurter.app/latest?from=USD`. The base currency is fixed to USD; per-currency conversions are computed locally as `target.rate / base.rate`.
+- Permission: requires `ohos.permission.INTERNET` (declared in `entry/src/main/module.json5`).
+- Fallback behaviour: the app ships with hard-coded fallback rates for every supported currency. If the network call fails or the response is malformed (e.g. wrong base, missing keys, non-numeric values), the previous rates are kept; the UI shows an "Update failed" status and stale rates remain usable offline.
+- The Update chip on the Exchange page shows `Update` / `Updating...` / `Just updated` / `Update failed`. While a request is in flight, repeat taps are ignored; if the user navigates away before it returns, the stale callback is discarded.
+
+# Supported Currencies
+
+USD, EUR, GBP, JPY, TRY, CAD, CHF, CNY, INR, BRL, MXN, ZAR, KRW, RUB (14 total).
+
 # Directory Structure
 
 ```
@@ -69,7 +84,17 @@ entry/src/main/ets/
 ## Restrictions
 
 Known Issue:
-Keyboard is not working on previewer
+Keyboard is not working on previewer. Test the amount-input flow on the simulator or a physical Watch 5 instead.
+
+# Build & Test
+
+The project uses the standard HarmonyOS toolchain. Open the project in DevEco Studio and either run the configurations from the IDE or invoke `hvigorw` from the command line:
+
+- Build a debug HAP: `hvigorw assembleHap --mode debug`
+- Run local unit tests (`entry/src/test`): `hvigorw test`
+- Run on-device / simulator instrumentation tests (`entry/src/ohosTest`): `hvigorw ohosTest`
+
+Local unit tests cover `CurrencyViewModel` pure logic (input validation, decimal formatting, search, code lookup, and Frankfurter response mapping including fallback preservation).
 
 # LICENSE
 

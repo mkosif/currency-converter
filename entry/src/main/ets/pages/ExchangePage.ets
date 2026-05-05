@@ -15,6 +15,8 @@ export class TmpClass {
   }
 }
 
+type UpdateStatus = 'idle' | 'loading' | 'updated' | 'error';
+
 @Builder
 export function ExchangePageBuilder(name: string, param: Object) {
   ExchangePage()
@@ -37,27 +39,39 @@ export struct ExchangePage {
   };
   @State drawingColorFilterFirst: ColorFilter | undefined =
     drawing.ColorFilter.createBlendModeColorFilter(this.color1, drawing.BlendMode.SRC_IN);
-  @State isUpdatedRates: boolean = false;
+  @State updateStatus: UpdateStatus = 'idle';
+  private statusResetTimer: number = -1;
+  // Bumped on every new update tap and on aboutToDisappear; an in-flight
+  // fetch's `.then()` checks its captured id against this and bails out if
+  // it has been superseded or the page has gone away.
+  private updateRequestId: number = 0;
 
   aboutToAppear(): void {
-    this.init()
+    this.recalcTarget();
+  }
+
+  aboutToDisappear(): void {
+    this.updateRequestId++;
+    if (this.statusResetTimer !== -1) {
+      clearTimeout(this.statusResetTimer);
+      this.statusResetTimer = -1;
+    }
   }
 
   onPageShow(): void {
-    this.init()
+    this.recalcTarget();
   }
 
-  init() {
-    this.baseAmount = '1.00'
+  recalcTarget() {
     this.targetAmount = this.viewModel.calculateConversion(this.baseAmount);
   }
 
   OnSelected(changedPropertyName: string) {
-    this.init()
+    this.recalcTarget();
   }
 
   OnTriggerMechanism(changedPropertyName: string) {
-    this.init()
+    this.recalcTarget();
   }
 
   toggleCurrency() {
@@ -67,7 +81,51 @@ export struct ExchangePage {
     this.selectedTargetCurrency = tempBaseCurrency;
     this.viewModel.selectedBaseCurrency = tempTargetCurrency;
     this.viewModel.selectedTargetCurrency = tempBaseCurrency;
-    this.init();
+    this.recalcTarget();
+  }
+
+  private updateLabel(): Resource {
+    if (this.updateStatus === 'loading') return $r('app.string.update_loading');
+    if (this.updateStatus === 'updated') return $r('app.string.updated');
+    if (this.updateStatus === 'error') return $r('app.string.update_failed');
+    return $r('app.string.update');
+  }
+
+  // Loading / updated / error share the muted (gray) style; idle uses the
+  // active blue style. Error keeps muted style so it doesn't look like a CTA.
+  private updateFontColor(): Resource {
+    return this.updateStatus === 'idle'
+      ? $r('app.color.update_font')
+      : $r('app.color.updated_font');
+  }
+
+  private updateBgColor(): Resource {
+    return this.updateStatus === 'idle'
+      ? $r('app.color.update_bg')
+      : $r('app.color.updated_bg');
+  }
+
+  private onUpdateTap() {
+    if (this.updateStatus === 'loading') return;
+    if (this.statusResetTimer !== -1) {
+      clearTimeout(this.statusResetTimer);
+      this.statusResetTimer = -1;
+    }
+    const requestId = ++this.updateRequestId;
+    this.updateStatus = 'loading';
+    this.viewModel.fetchAndUpdateRates().then((ok: boolean) => {
+      // Stale guard: page gone or a newer tap has taken over.
+      if (requestId !== this.updateRequestId) return;
+      this.updateStatus = ok ? 'updated' : 'error';
+      this.recalcTarget();
+      this.statusResetTimer = setTimeout(() => {
+        if (requestId !== this.updateRequestId) return;
+        if (this.updateStatus !== 'loading') {
+          this.updateStatus = 'idle';
+        }
+        this.statusResetTimer = -1;
+      }, 5000);
+    });
   }
 
   build() {
@@ -104,7 +162,6 @@ export struct ExchangePage {
                 .width('21vp')
                 .fillColor($r('app.color.inputBackground'))
                 .backgroundColor(Color.Transparent)
-                .borderColor('000FF')
                 .foregroundColor(Color.Blue)
                 .colorFilter(this.drawingColorFilterFirst)
                 .margin({ top: '1vp' })
@@ -118,10 +175,11 @@ export struct ExchangePage {
             .align(Alignment.Center)
             .height('33vp')
 
-            Text(this.isUpdatedRates ? $r('app.string.updated') : $r('app.string.update'))
+            Text(this.updateLabel())
               .fontSize(11)
-              .fontColor(this.isUpdatedRates ? $r('app.color.updated_font') : $r('app.color.update_font'))
-              .backgroundColor(this.isUpdatedRates ? $r('app.color.updated_bg') : $r('app.color.update_bg'))
+              .fontColor(this.updateFontColor())
+              .backgroundColor(this.updateBgColor())
+              .opacity(this.updateStatus === 'loading' ? 0.7 : 1)
               .borderRadius(16)
               .padding({
                 left: 12,
@@ -130,12 +188,7 @@ export struct ExchangePage {
                 bottom: 4
               })
               .onClick(() => {
-                this.isUpdatedRates = true;
-                this.viewModel.fetchAndUpdateRates().then(() => {
-                  setTimeout(() => {
-                    this.isUpdatedRates = false;
-                  }, 5000)
-                })
+                this.onUpdateTap();
               })
               .alignSelf(ItemAlign.Center)
               .margin({ top: 6, bottom: 6 })

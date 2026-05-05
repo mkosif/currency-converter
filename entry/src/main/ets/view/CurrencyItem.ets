@@ -38,7 +38,7 @@ export struct CurrencyItem {
       }
     }
     .width($r('app.string.w_100'))
-    .height(36)
+    .height(48)
     .backgroundColor('#FFFFFF')
     .onClick(() => {
       if (this.onItemClick) {

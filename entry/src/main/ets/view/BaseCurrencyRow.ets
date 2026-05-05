@@ -55,10 +55,11 @@ export struct BaseCurrencyRow {
         .layoutWeight(1)
         .type(InputType.NUMBER_DECIMAL)
         .textAlign(TextAlign.Start)
+        .maxLength(12)
         .fontSize(19)
         .height(`35vp`)
         .backgroundColor($r(`app.color.inputBackground`))
-        .padding({ left: 17, right: 0 })
+        .padding({ left: 17, right: 8 })
         .fontWeight(FontWeight.Bold)
         .placeholderColor(Color.White)
         .placeholderFont({

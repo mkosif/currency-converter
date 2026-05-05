@@ -37,12 +37,24 @@
       "value": "Just updated"
     },
     {
+      "name": "update_loading",
+      "value": "Updating..."
+    },
+    {
+      "name": "update_failed",
+      "value": "Update failed"
+    },
+    {
       "name": "reference",
       "value": "Reference market exchange rate"
     },
     {
       "name": "search",
       "value": "Search Currency"
+    },
+    {
+      "name": "no_results",
+      "value": "No matches"
     },
     {
       "name": "blank",
@@ -63,6 +75,10 @@
     {
       "name": "core_url",
       "value": "api.frankfurter.app"
+    },
+    {
+      "name": "reason_internet",
+      "value": "Used to fetch the latest exchange rates."
     }
   ]
 }
