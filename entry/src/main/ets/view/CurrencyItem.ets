@@ -18,7 +18,7 @@ export struct CurrencyItem {
       Row() {
         Text(this.currency.code)
           .fontSize(13)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(500)
           .fontColor($r('app.color.currency_code'))
 
         Text(this.currency.name)

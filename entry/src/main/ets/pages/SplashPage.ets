@@ -39,7 +39,7 @@ export struct SplashPage {
                 Text($r('app.string.splash_text'))
                   .width('180%')
                   .fontSize(17)
-                  .fontWeight(FontWeight.Bolder)
+                  .fontWeight(700)
                   .fontFamily('default')
                   .textAlign(TextAlign.Center)
               }

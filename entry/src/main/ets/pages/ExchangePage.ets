@@ -142,7 +142,7 @@ export struct ExchangePage {
           Column() {
             Text($r('app.string.title'))
               .fontSize(18)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(700)
               .fontColor(Color.White)
               .margin({ top: 4, bottom: 0 })
 

@@ -51,8 +51,7 @@ export struct SelectCurrencyPage {
           .width(25)
 
           SearchBar({
-            placeholder: this.getUIContext().getHostContext()?.resourceManager.getStringSync($r('app.string.search')
-              .id),
+            placeholder: $r('app.string.search'),
             color: $r('app.color.updated_bg'),
             onSearch: (value: string) => {
               this.searchResult = this.viewModel.searchCurrency(value);

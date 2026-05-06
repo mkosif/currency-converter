@@ -17,7 +17,7 @@ export struct TargetCurrencyRowComponent {
 
         Text(this.selectedTargetCurrency.code)
           .fontSize(11)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(700)
           .width('27.00vp')
           .fontColor(Color.Black)
 
@@ -45,7 +45,7 @@ export struct TargetCurrencyRowComponent {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .padding({ left: 17, right: 12 })
         .height('35vp')
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(700)
 
     }
     .width($r('app.string.w_100'))

@@ -1,6 +1,6 @@
 @Component
 export struct SearchBar {
-  @Prop placeholder: string = '';
+  @Prop placeholder: ResourceStr = '';
   @Prop color: string | Resource
   onSearch: (type: string) => void = () => {
   };

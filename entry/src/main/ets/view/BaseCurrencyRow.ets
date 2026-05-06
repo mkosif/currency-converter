@@ -32,7 +32,7 @@ export struct BaseCurrencyRow {
 
         Text(this.selectedBaseCurrency.code)
           .fontSize(11)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(700)
           .width('27.00vp')
           .fontColor(Color.Black)
 
@@ -60,11 +60,11 @@ export struct BaseCurrencyRow {
         .height(`35vp`)
         .backgroundColor($r(`app.color.inputBackground`))
         .padding({ left: 17, right: 8 })
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(700)
         .placeholderColor(Color.White)
         .placeholderFont({
           size: 15,
-          weight: FontWeight.Bold
+          weight: 700
         })
         .onChange((value: string) => {
           this.inputAmount = value;
