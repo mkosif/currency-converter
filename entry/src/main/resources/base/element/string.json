@@ -75,10 +75,6 @@
     {
       "name": "core_url",
       "value": "api.frankfurter.app"
-    },
-    {
-      "name": "reason_internet",
-      "value": "Used to fetch the latest exchange rates."
     }
   ]
 }

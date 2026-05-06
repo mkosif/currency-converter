@@ -5,7 +5,7 @@
       "pageSourceFile": "src/main/ets/pages/ExchangePage.ets",
       "buildFunction": "ExchangePageBuilder",
       "data": {
-        "description": "this is pageOne"
+        "description": "Currency exchange page"
       }
     },
     {
@@ -13,7 +13,7 @@
       "pageSourceFile": "src/main/ets/pages/SelectCurrencyPage.ets",
       "buildFunction": "SelectCurrencyPageBuilder",
       "data": {
-        "description": "this is pageOne"
+        "description": "Currency selection page"
       }
     },
     {
@@ -21,7 +21,7 @@
       "pageSourceFile": "src/main/ets/pages/SplashPage.ets",
       "buildFunction": "SplashPageBuilder",
       "data": {
-        "description": "this is pageOne"
+        "description": "Splash page"
       }
     }
   ]

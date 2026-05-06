@@ -2,7 +2,7 @@
 export struct SearchBar {
   @Prop placeholder: ResourceStr = '';
   @Prop color: string | Resource
-  onSearch: (type: string) => void = () => {
+  onSearch: (query: string) => void = () => {
   };
 
   build() {
