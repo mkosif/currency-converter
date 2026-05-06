@@ -69,7 +69,7 @@ export struct SelectCurrencyPage {
               .fontColor($r('app.color.currency_name'))
               .textAlign(TextAlign.Center)
           }
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.exchange_panel_bg'))
           .layoutWeight(1)
           .width($r('app.string.w_100'))
           .justifyContent(FlexAlign.Center)
@@ -100,7 +100,7 @@ export struct SelectCurrencyPage {
                 .height('55vp')
             }
           }
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.exchange_panel_bg'))
           .layoutWeight(1)
           .width($r('app.string.w_100'))
           .height($r('app.string.w_100'))

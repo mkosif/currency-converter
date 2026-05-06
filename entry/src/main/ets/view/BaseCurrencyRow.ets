@@ -34,7 +34,7 @@ export struct BaseCurrencyRow {
           .fontSize(11)
           .fontWeight(700)
           .width('27.00vp')
-          .fontColor(Color.Black)
+          .fontColor($r('app.color.text_primary'))
 
         Image($r('app.media.ic_arrow_right'))
           .width(12)

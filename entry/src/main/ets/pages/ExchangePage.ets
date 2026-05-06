@@ -233,7 +233,7 @@ export struct ExchangePage {
             Text($r('app.string.reference'))
               .fontSize(9)
               .width('70%')
-              .fontColor(Color.Gray)
+              .fontColor($r('app.color.text_secondary'))
               .padding({ top: 8, left: 12 })
               .opacity(0.8)
               .textAlign(TextAlign.Start)
@@ -249,7 +249,7 @@ export struct ExchangePage {
           }
         }
         .width($r('app.string.w_100'))
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.exchange_panel_bg'))
         .layoutWeight(1)
         .borderRadius({ topLeft: 16, topRight: 16 })
 

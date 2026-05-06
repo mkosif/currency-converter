@@ -59,6 +59,18 @@
     {
       "name": "currency_check",
       "value": "#007DFF"
+    },
+    {
+      "name": "exchange_panel_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#000000"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#8E8E93"
     }
   ]
 }
