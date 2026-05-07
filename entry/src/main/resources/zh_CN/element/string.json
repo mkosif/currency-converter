@@ -1,0 +1,88 @@
+{
+  "string": [
+    {
+      "name": "title",
+      "value": "汇率"
+    },
+    {
+      "name": "sub_title",
+      "value": "汇率仅供参考"
+    },
+    {
+      "name": "update",
+      "value": "更新"
+    },
+    {
+      "name": "updated",
+      "value": "已更新"
+    },
+    {
+      "name": "update_loading",
+      "value": "更新中..."
+    },
+    {
+      "name": "update_failed",
+      "value": "更新失败"
+    },
+    {
+      "name": "update_offline",
+      "value": "离线"
+    },
+    {
+      "name": "updated_at_prefix",
+      "value": "更新于"
+    },
+    {
+      "name": "reference",
+      "value": "参考市场汇率"
+    },
+    {
+      "name": "search",
+      "value": "搜索货币"
+    },
+    {
+      "name": "no_results",
+      "value": "无匹配项"
+    },
+    {
+      "name": "splash_text",
+      "value": "货币换算器"
+    },
+    {
+      "name": "enter",
+      "value": "输入金额"
+    },
+    {
+      "name": "a11y_back",
+      "value": "返回"
+    },
+    {
+      "name": "a11y_swap",
+      "value": "切换货币"
+    },
+    {
+      "name": "a11y_update",
+      "value": "更新汇率"
+    },
+    {
+      "name": "a11y_skip_splash",
+      "value": "跳过启动页"
+    },
+    {
+      "name": "auto_refresh_off",
+      "value": "自动刷新:关闭"
+    },
+    {
+      "name": "auto_refresh_15",
+      "value": "自动刷新:15 分钟"
+    },
+    {
+      "name": "auto_refresh_30",
+      "value": "自动刷新:30 分钟"
+    },
+    {
+      "name": "auto_refresh_60",
+      "value": "自动刷新:1 小时"
+    }
+  ]
+}

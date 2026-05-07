@@ -1,15 +1,26 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { i18n } from '@kit.LocalizationKit';
 
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     try {
-      this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+      // Force dark theme regardless of system setting; activates the
+      // resources/dark/ token set we ship with the app.
+      this.context.getApplicationContext()
+        .setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
     } catch (error) {
       hilog.error(DOMAIN, 'EntryAbility', 'Failed to set color mode. Cause: %{public}s', JSON.stringify(error));
+    }
+    try {
+      // Force English UI regardless of device locale; falls back to the
+      // resources/base/ string set.
+      i18n.System.setAppPreferredLanguage('en');
+    } catch (error) {
+      hilog.error(DOMAIN, 'EntryAbility', 'Failed to set preferred language. Cause: %{public}s', JSON.stringify(error));
     }
     hilog.info(DOMAIN, 'EntryAbility', '%{public}s', 'Ability onCreate');
   }

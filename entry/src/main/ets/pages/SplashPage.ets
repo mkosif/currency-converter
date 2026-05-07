@@ -1,3 +1,5 @@
+import { AppConstants } from '../common/AppConstants';
+
 @Builder
 export function SplashPageBuilder(name: string, param: Object) {
   SplashPage()
@@ -11,8 +13,8 @@ export struct SplashPage {
   aboutToAppear(): void {
     this.navTimer = setTimeout(() => {
       this.navTimer = -1;
-      this.pageInfos.pushPathByName('ExchangePage', null);
-    }, 2000);
+      this.goToExchange();
+    }, AppConstants.SPLASH_DURATION_MS);
   }
 
   aboutToDisappear(): void {
@@ -20,6 +22,14 @@ export struct SplashPage {
       clearTimeout(this.navTimer);
       this.navTimer = -1;
     }
+  }
+
+  private goToExchange(): void {
+    if (this.navTimer !== -1) {
+      clearTimeout(this.navTimer);
+      this.navTimer = -1;
+    }
+    this.pageInfos.pushPathByName('ExchangePage', null);
   }
 
   build() {
@@ -53,6 +63,10 @@ export struct SplashPage {
         .width($r('app.string.navDestination_width'))
         .height($r('app.string.navDestination_height'))
         .alignContent(Alignment.Center)
+        .accessibilityText($r('app.string.a11y_skip_splash'))
+        .onClick(() => {
+          this.goToExchange();
+        })
       }
       .width($r('app.string.navDestination_width'))
       .height($r('app.string.navDestination_height'))

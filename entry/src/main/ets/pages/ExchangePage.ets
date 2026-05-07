@@ -1,8 +1,10 @@
 import { BaseCurrencyRow } from '../view/BaseCurrencyRow';
 import { TargetCurrencyRowComponent } from '../view/TargetCurrencyRow';
 import { CurrencyData } from '../viewmodel/CurrencyData';
-import { CurrencyViewModel } from '../viewmodel/CurrencyViewModel';
+import { CurrencyViewModel, FetchResult } from '../viewmodel/CurrencyViewModel';
 import { common2D, drawing } from '@kit.ArkGraphics2D';
+import { AppConstants } from '../common/AppConstants';
+import { Haptics } from '../common/Haptics';
 
 @Observed
 export class TmpClass {
@@ -15,7 +17,7 @@ export class TmpClass {
   }
 }
 
-type UpdateStatus = 'idle' | 'loading' | 'updated' | 'error';
+type UpdateStatus = 'idle' | 'loading' | 'updated' | 'error' | 'offline';
 
 @Builder
 export function ExchangePageBuilder(name: string, param: Object) {
@@ -31,6 +33,7 @@ export struct ExchangePage {
   @Consume @Watch('OnSelected') selectedTargetCurrency: CurrencyData
   @Consume viewModel: CurrencyViewModel
   @Consume @Watch('OnTriggerMechanism') triggerMechanism: number
+  @Consume lastUpdatedAt: number
   private readonly color1: common2D.Color = {
     alpha: 255,
     red: 32,
@@ -40,11 +43,18 @@ export struct ExchangePage {
   private readonly drawingColorFilterFirst: ColorFilter | undefined =
     drawing.ColorFilter.createBlendModeColorFilter(this.color1, drawing.BlendMode.SRC_IN);
   @State updateStatus: UpdateStatus = 'idle';
+  @State isRefreshing: boolean = false;
+  // Mirrored into @State so the long-press menu re-renders when the user
+  // picks a new interval; the persisted source of truth is in the ViewModel.
+  @State autoRefreshIntervalMin: number = 0;
   private statusResetTimer: number = -1;
   private updateRequestId: number = 0;
+  private autoRefreshTimer: number = -1;
 
   aboutToAppear(): void {
+    this.autoRefreshIntervalMin = this.viewModel.autoRefreshIntervalMin;
     this.recalcTarget();
+    this.scheduleAutoRefresh();
   }
 
   aboutToDisappear(): void {
@@ -53,6 +63,37 @@ export struct ExchangePage {
       clearTimeout(this.statusResetTimer);
       this.statusResetTimer = -1;
     }
+    if (this.autoRefreshTimer !== -1) {
+      clearInterval(this.autoRefreshTimer);
+      this.autoRefreshTimer = -1;
+    }
+    // Persist whatever the user last typed; best-effort, fire-and-forget.
+    this.viewModel.persistAmount(this.baseAmount);
+  }
+
+  private scheduleAutoRefresh(): void {
+    if (this.autoRefreshTimer !== -1) {
+      clearInterval(this.autoRefreshTimer);
+      this.autoRefreshTimer = -1;
+    }
+    if (this.autoRefreshIntervalMin <= 0) {
+      return;
+    }
+    const periodMs = this.autoRefreshIntervalMin * 60 * 1000;
+    this.autoRefreshTimer = setInterval(() => {
+      // Skip if a manual update is already in flight; the chip flow handles it.
+      if (this.updateStatus === 'loading') {
+        return;
+      }
+      this.startFetch(() => {});
+    }, periodMs);
+  }
+
+  private applyAutoRefresh(min: number): void {
+    this.viewModel.setAutoRefreshIntervalMin(min);
+    this.autoRefreshIntervalMin = min;
+    this.scheduleAutoRefresh();
+    Haptics.tap();
   }
 
   onPageShow(): void {
@@ -60,6 +101,11 @@ export struct ExchangePage {
   }
 
   recalcTarget() {
+    if (!this.baseAmount || this.baseAmount.trim().length === 0) {
+      // Empty input → show placeholder rather than '0.00'.
+      this.targetAmount = AppConstants.EMPTY_TARGET_PLACEHOLDER;
+      return;
+    }
     this.targetAmount = this.viewModel.calculateConversion(this.baseAmount);
   }
 
@@ -71,6 +117,22 @@ export struct ExchangePage {
     this.recalcTarget();
   }
 
+  // Crown rotation tweaks the base amount in CROWN_AMOUNT_STEP increments.
+  // Negative angularVelocity = downward rotation = decrement; positive = up.
+  // Wrapped in try/catch — on devices without crown the API call no-ops.
+  private onCrownEvent(velocity: number): void {
+    try {
+      const dir = velocity > 0 ? 1 : -1;
+      const cur = parseFloat(this.baseAmount);
+      const base = Number.isFinite(cur) && cur >= 0 ? cur : 0;
+      const next = Math.max(0, base + dir * AppConstants.CROWN_AMOUNT_STEP);
+      this.baseAmount = CurrencyViewModel.formatAmount(next, 2);
+      this.recalcTarget();
+    } catch (_err) {
+      // ignore
+    }
+  }
+
   toggleCurrency() {
     const tempBaseCurrency: CurrencyData = this.selectedBaseCurrency;
     const tempTargetCurrency: CurrencyData = this.selectedTargetCurrency;
@@ -78,6 +140,8 @@ export struct ExchangePage {
     this.selectedTargetCurrency = tempBaseCurrency;
     this.viewModel.selectedBaseCurrency = tempTargetCurrency;
     this.viewModel.selectedTargetCurrency = tempBaseCurrency;
+    this.viewModel.persistSelection();
+    Haptics.tap();
     this.recalcTarget();
   }
 
@@ -91,7 +155,30 @@ export struct ExchangePage {
     if (this.updateStatus === 'error') {
       return $r('app.string.update_failed');
     }
+    if (this.updateStatus === 'offline') {
+      return $r('app.string.update_offline');
+    }
     return $r('app.string.update');
+  }
+
+  // Format like "Updated 10:42". Returns empty string when there has been
+  // no successful fetch (cold install with no cache). The "Updated" prefix
+  // is read from string.json so it's localised in tr_TR / zh_CN.
+  private updatedAtText(): string {
+    if (!this.lastUpdatedAt || this.lastUpdatedAt <= 0) {
+      return '';
+    }
+    const d = new Date(this.lastUpdatedAt);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    let prefix = 'Updated';
+    try {
+      prefix = this.getUIContext().getHostContext()
+        ?.resourceManager.getStringSync($r('app.string.updated_at_prefix').id) ?? prefix;
+    } catch (_err) {
+      // fallback to hardcoded prefix
+    }
+    return `${prefix} ${hh}:${mm}`;
   }
 
   private updateFontColor(): Resource {
@@ -106,7 +193,9 @@ export struct ExchangePage {
       : $r('app.color.updated_bg');
   }
 
-  private onUpdateTap() {
+  // Shared fetch plumbing for both the chip tap and pull-to-refresh.
+  // `onComplete` runs after status is set, before the auto-reset timer.
+  private startFetch(onComplete: () => void): void {
     if (this.updateStatus === 'loading') {
       return;
     }
@@ -116,12 +205,23 @@ export struct ExchangePage {
     }
     const requestId = ++this.updateRequestId;
     this.updateStatus = 'loading';
-    this.viewModel.fetchAndUpdateRates().then((ok: boolean) => {
+    this.viewModel.fetchAndUpdateRates().then((result: FetchResult) => {
       if (requestId !== this.updateRequestId) {
         return;
       }
-      this.updateStatus = ok ? 'updated' : 'error';
+      if (result === 'ok') {
+        this.updateStatus = 'updated';
+        this.lastUpdatedAt = this.viewModel.lastUpdatedAt;
+        Haptics.success();
+      } else if (result === 'offline') {
+        this.updateStatus = 'offline';
+        Haptics.error();
+      } else {
+        this.updateStatus = 'error';
+        Haptics.error();
+      }
       this.recalcTarget();
+      onComplete();
       this.statusResetTimer = setTimeout(() => {
         if (requestId !== this.updateRequestId) {
           return;
@@ -130,7 +230,40 @@ export struct ExchangePage {
           this.updateStatus = 'idle';
         }
         this.statusResetTimer = -1;
-      }, 5000);
+      }, AppConstants.STATUS_RESET_MS);
+    });
+  }
+
+  private onUpdateTap(): void {
+    this.startFetch(() => {});
+  }
+
+  @Builder
+  private autoRefreshMenu() {
+    Menu() {
+      MenuItem({ content: $r('app.string.auto_refresh_off') })
+        .selected(this.autoRefreshIntervalMin === 0)
+        .onClick(() => { this.applyAutoRefresh(0); })
+      MenuItem({ content: $r('app.string.auto_refresh_15') })
+        .selected(this.autoRefreshIntervalMin === 15)
+        .onClick(() => { this.applyAutoRefresh(15); })
+      MenuItem({ content: $r('app.string.auto_refresh_30') })
+        .selected(this.autoRefreshIntervalMin === 30)
+        .onClick(() => { this.applyAutoRefresh(30); })
+      MenuItem({ content: $r('app.string.auto_refresh_60') })
+        .selected(this.autoRefreshIntervalMin === 60)
+        .onClick(() => { this.applyAutoRefresh(60); })
+    }
+  }
+
+  private onPullRefresh(): void {
+    if (this.updateStatus === 'loading') {
+      // Chip tap already in flight — drop the pull spinner immediately.
+      this.isRefreshing = false;
+      return;
+    }
+    this.startFetch(() => {
+      this.isRefreshing = false;
     });
   }
 
@@ -157,54 +290,69 @@ export struct ExchangePage {
         }
         .width($r('app.string.w_100'))
 
-        Column() {
+        Refresh({ refreshing: $$this.isRefreshing }) {
+          Scroll() {
+            Column() {
 
-          Stack() {
-            Row() {
+              Stack() {
+                Row() {
 
-              Blank().width('7%')
+                  Blank().width('7%')
 
-              Image($r('app.media.icon_convert'))
-                .width('21vp')
-                .fillColor($r('app.color.inputBackground'))
-                .backgroundColor(Color.Transparent)
-                .foregroundColor(Color.Blue)
-                .colorFilter(this.drawingColorFilterFirst)
-                .margin({ top: '1vp' })
-                .onClick(() => {
-                  this.toggleCurrency()
-                })
+                  Image($r('app.media.icon_convert'))
+                    .width('21vp')
+                    .fillColor($r('app.color.inputBackground'))
+                    .backgroundColor(Color.Transparent)
+                    .foregroundColor(Color.Blue)
+                    .colorFilter(this.drawingColorFilterFirst)
+                    .margin({ top: '1vp' })
+                    .accessibilityText($r('app.string.a11y_swap'))
+                    .onClick(() => {
+                      this.toggleCurrency()
+                    })
 
-            }
+                }
             .width($r('app.string.w_100'))
             .alignSelf(ItemAlign.Center)
             .align(Alignment.Center)
             .height('33vp')
 
-            Text(this.updateLabel())
-              .fontSize(11)
-              .fontColor(this.updateFontColor())
-              .backgroundColor(this.updateBgColor())
-              .opacity(this.updateStatus === 'loading' ? 0.7 : 1)
-              .borderRadius(16)
-              .padding({
-                left: 12,
-                right: 12,
-                top: 4,
-                bottom: 4
-              })
-              .onClick(() => {
-                this.onUpdateTap();
-              })
-              .alignSelf(ItemAlign.Center)
-              .margin({ top: 6, bottom: 6 })
+            Row() {
+              Text(this.updateLabel())
+                .fontSize(11)
+                .fontColor(this.updateFontColor())
+                .backgroundColor(this.updateBgColor())
+                .opacity(this.updateStatus === 'loading' ? 0.7 : 1)
+                .borderRadius(16)
+                .padding({
+                  left: 12,
+                  right: 12,
+                  top: 4,
+                  bottom: 4
+                })
+                .accessibilityText($r('app.string.a11y_update'))
+                .onClick(() => {
+                  this.onUpdateTap();
+                })
+                .bindContextMenu(this.autoRefreshMenu, ResponseType.LongPress)
+
+              if (this.updatedAtText().length > 0) {
+                Text(this.updatedAtText())
+                  .fontSize(9)
+                  .fontColor($r('app.color.text_secondary'))
+                  .opacity(0.8)
+                  .margin({ left: 6 })
+              }
+            }
+            .alignSelf(ItemAlign.Center)
+            .margin({ top: 6, bottom: 6 })
           }
 
           BaseCurrencyRow({
             amount: this.baseAmount,
             onAmountChange: (value: string) => {
               this.baseAmount = value;
-              this.targetAmount = this.viewModel.calculateConversion(value);
+              this.recalcTarget();
             },
             onCurrencySelect: () => {
               this.pageInfos.pushPathByName(
@@ -247,11 +395,19 @@ export struct ExchangePage {
             .width('40%')
             .height('25vp')
           }
+            }
+            .width($r('app.string.w_100'))
+          }
+          .scrollBar(BarState.Off)
+          .width($r('app.string.w_100'))
         }
         .width($r('app.string.w_100'))
         .backgroundColor($r('app.color.exchange_panel_bg'))
         .layoutWeight(1)
         .borderRadius({ topLeft: 16, topRight: 16 })
+        .onRefreshing(() => {
+          this.onPullRefresh();
+        })
 
       }
       .width($r('app.string.w_100'))
@@ -261,6 +417,9 @@ export struct ExchangePage {
     .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
       this.pageInfos = context.pathStack
+    })
+    .onDigitalCrown((event: CrownEvent) => {
+      this.onCrownEvent(event.angularVelocity);
     })
   }
 }

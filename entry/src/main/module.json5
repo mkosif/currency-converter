@@ -16,7 +16,7 @@
         "name": "EntryAbility",
         "srcEntry": "./ets/entryability/EntryAbility.ets",
         "description": "$string:EntryAbility_desc",
-        "icon": "$media:layered_image",
+        "icon": "$media:app_icon",
         "label": "$string:EntryAbility_label",
         "startWindowIcon": "$media:startIcon",
         "startWindowBackground": "$color:start_window_background",
@@ -45,12 +45,33 @@
             "resource": "$profile:backup_config"
           }
         ]
+      },
+      {
+        "name": "EntryFormAbility",
+        "srcEntry": "./ets/widget/EntryFormAbility.ets",
+        "label": "$string:EntryAbility_label",
+        "description": "$string:EntryAbility_desc",
+        "type": "form",
+        "metadata": [
+          {
+            "name": "ohos.extension.form",
+            "resource": "$profile:forms_config"
+          }
+        ]
       }
     ],
     "requestPermissions": [
       {
         "name" : "ohos.permission.INTERNET",
         "reason": "$string:reason_internet"
+      },
+      {
+        "name": "ohos.permission.GET_NETWORK_INFO",
+        "reason": "$string:reason_network_info"
+      },
+      {
+        "name": "ohos.permission.VIBRATE",
+        "reason": "$string:reason_vibrate"
       }
     ]
   }

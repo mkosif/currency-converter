@@ -1,18 +1,45 @@
 import { CurrencyData, FrankfurterResponse } from './CurrencyData';
 import { rcp } from '@kit.RemoteCommunicationKit';
+import { connection } from '@kit.NetworkKit';
+import { common } from '@kit.AbilityKit';
+import { RatesCache, CachedState } from '../services/RatesCache';
+import { AppConstants } from '../common/AppConstants';
 
-const API_BASE_URL = 'https://api.frankfurter.app';
-const session = rcp.createSession();
+// 8 second hard ceiling so the Update chip can't hang on a stalled socket.
+const session = rcp.createSession({
+  requestConfiguration: {
+    transfer: {
+      timeout: {
+        connectMs: AppConstants.NETWORK_TIMEOUT_MS,
+        transferMs: AppConstants.NETWORK_TIMEOUT_MS
+      }
+    }
+  }
+});
+
+export type FetchResult = 'ok' | 'offline' | 'error';
 
 @Observed
 export class CurrencyViewModel {
   private allCurrencyData: CurrencyData[] = [];
+  private cache: RatesCache | null = null;
+  // Epoch ms of last successful fetch (network or restored from cache).
+  // 0 means "never updated" — UI hides the timestamp.
+  lastUpdatedAt: number = 0;
+  // Restored from cache during init(); '' if never persisted.
+  restoredBaseAmount: string = '';
+  // Most-recently-selected currency codes (most recent first). Populated from
+  // cache during init(); pushed to whenever the user picks a currency.
+  recentCodes: string[] = [];
+  // Minutes between background refreshes; 0 disables auto-refresh.
+  autoRefreshIntervalMin: number = 0;
 
   constructor() {
     this.allCurrencyData = this.initCurrencyData();
     this._selectedBaseCurrency = this.allCurrencyData[0]; // USD
     this._selectedTargetCurrency = this.allCurrencyData[1]; // EUR
-    this.fetchAndUpdateRates();
+    // Network/cache work is intentionally NOT started here so the ViewModel
+    // stays unit-test friendly. Call init(context) from the host page.
   }
 
   private _selectedBaseCurrency: CurrencyData;
@@ -83,34 +110,46 @@ export class CurrencyViewModel {
     return Number.isFinite(n) && n >= 0;
   }
 
-  static formatAmount(value: number): string {
+  static decimalsForCurrency(code: string): number {
+    return AppConstants.ZERO_DECIMAL_CODES.has(code) ? 0 : 2;
+  }
+
+  // Up to 4 decimals after `minDecimals`, trimming trailing zeros. When
+  // `minDecimals` is 0 the value is rounded to an integer.
+  static formatAmount(value: number, minDecimals: number = 2): string {
     if (!Number.isFinite(value)) {
-      return '0.00';
+      return minDecimals > 0 ? `0.${'0'.repeat(minDecimals)}` : '0';
+    }
+    if (minDecimals <= 0) {
+      return Math.round(value).toString();
     }
     const fixed = value.toFixed(4);
     const trimmed = fixed.replace(/0+$/, '').replace(/\.$/, '');
     const dot = trimmed.indexOf('.');
     if (dot === -1) {
-      return `${trimmed}.00`;
+      return `${trimmed}.${'0'.repeat(minDecimals)}`;
     }
     const decimals = trimmed.length - dot - 1;
-    if (decimals < 2) {
-      return `${trimmed}${'0'.repeat(2 - decimals)}`;
+    if (decimals < minDecimals) {
+      return `${trimmed}${'0'.repeat(minDecimals - decimals)}`;
     }
     return trimmed;
   }
 
   calculateConversion(amount: string): string {
+    const target = this._selectedTargetCurrency;
+    const targetDecimals = target
+      ? CurrencyViewModel.decimalsForCurrency(target.code)
+      : 2;
     if (!CurrencyViewModel.isValidAmount(amount)) {
-      return '0.00';
+      return CurrencyViewModel.formatAmount(0, targetDecimals);
     }
     const base = this._selectedBaseCurrency;
-    const target = this._selectedTargetCurrency;
     if (!base || !target || base.rate <= 0) {
-      return '0.00';
+      return CurrencyViewModel.formatAmount(0, targetDecimals);
     }
     const rate = target.rate / base.rate;
-    return CurrencyViewModel.formatAmount(parseFloat(amount) * rate);
+    return CurrencyViewModel.formatAmount(parseFloat(amount) * rate, targetDecimals);
   }
 
   applyRates(response: FrankfurterResponse | null | undefined): boolean {
@@ -137,17 +176,142 @@ export class CurrencyViewModel {
     return updated > 0;
   }
 
-  async fetchAndUpdateRates(): Promise<boolean> {
-    const baseCode = 'USD';
-    const url = `${API_BASE_URL}/latest?from=${baseCode}`;
+  // Loads previously cached state and triggers a background refresh. Safe
+  // to call once; subsequent calls re-bind the cache instance but keep
+  // existing rates.
+  async init(context: common.Context): Promise<void> {
+    this.cache = new RatesCache(context);
+    const state = await this.cache.load();
+    if (state) {
+      if (state.rates && Object.keys(state.rates).length > 0) {
+        this.applyRates({
+          amount: 1,
+          base: state.base || 'USD',
+          date: '',
+          rates: state.rates
+        });
+        this.lastUpdatedAt = state.lastUpdatedAt || 0;
+      }
+      const persistedBase = state.selectedBaseCode
+        ? this.getCurrencyByCode(state.selectedBaseCode)
+        : undefined;
+      const persistedTarget = state.selectedTargetCode
+        ? this.getCurrencyByCode(state.selectedTargetCode)
+        : undefined;
+      if (persistedBase) {
+        this._selectedBaseCurrency = persistedBase;
+      }
+      if (persistedTarget) {
+        this._selectedTargetCurrency = persistedTarget;
+      }
+      if (state.lastBaseAmount && CurrencyViewModel.isValidAmount(state.lastBaseAmount)) {
+        this.restoredBaseAmount = state.lastBaseAmount;
+      }
+      if (state.recentCodes && Array.isArray(state.recentCodes)) {
+        this.recentCodes = state.recentCodes
+          .filter(c => this.getCurrencyByCode(c) !== undefined)
+          .slice(0, AppConstants.RECENT_MAX);
+      }
+      if (typeof state.autoRefreshIntervalMin === 'number'
+        && AppConstants.AUTO_REFRESH_OPTIONS_MIN.includes(state.autoRefreshIntervalMin)) {
+        this.autoRefreshIntervalMin = state.autoRefreshIntervalMin;
+      }
+    }
+    // Fire-and-forget refresh — UI reflects status via fetchAndUpdateRates'
+    // own callers when invoked from a tap.
+    this.fetchAndUpdateRates();
+  }
+
+  // Best-effort selection persistence; called whenever the user picks a
+  // new base/target currency.
+  async persistSelection(): Promise<void> {
+    if (!this.cache) {
+      return;
+    }
+    await this.cache.patchSelection(
+      this._selectedBaseCurrency.code,
+      this._selectedTargetCurrency.code
+    );
+  }
+
+  // Best-effort amount persistence; called when the user navigates away
+  // from the exchange page.
+  async persistAmount(amount: string): Promise<void> {
+    if (!this.cache) {
+      return;
+    }
+    if (!CurrencyViewModel.isValidAmount(amount)) {
+      return;
+    }
+    await this.cache.patchAmount(amount);
+  }
+
+  // Update the auto-refresh interval and persist. Hosts read the new value
+  // back from `autoRefreshIntervalMin` and reschedule their own timers.
+  setAutoRefreshIntervalMin(min: number): void {
+    if (!AppConstants.AUTO_REFRESH_OPTIONS_MIN.includes(min)) {
+      return;
+    }
+    this.autoRefreshIntervalMin = min;
+    if (this.cache) {
+      this.cache.patchAutoRefresh(min);
+    }
+  }
+
+  // Push a code onto the recent-selections MRU list (dedupe + cap).
+  // Persists asynchronously, fire-and-forget.
+  pushRecent(code: string): void {
+    if (!code || !this.getCurrencyByCode(code)) {
+      return;
+    }
+    const next = [code].concat(this.recentCodes.filter(c => c !== code));
+    this.recentCodes = next.slice(0, AppConstants.RECENT_MAX);
+    if (this.cache) {
+      this.cache.patchRecents(this.recentCodes);
+    }
+  }
+
+  private async isOnline(): Promise<boolean> {
+    try {
+      return await connection.hasDefaultNet();
+    } catch (err) {
+      // If the connectivity API itself fails, optimistically attempt the
+      // fetch — RCP timeout will handle hangs.
+      return true;
+    }
+  }
+
+  async fetchAndUpdateRates(): Promise<FetchResult> {
+    const online = await this.isOnline();
+    if (!online) {
+      return 'offline';
+    }
+    const baseCode = AppConstants.DEFAULT_BASE_CODE;
+    const url = `${AppConstants.API_BASE_URL}/latest?from=${baseCode}`;
     const request = new rcp.Request(url, 'GET');
     try {
       const response = await session.fetch(request);
       const parsed = response.toJSON() as FrankfurterResponse;
-      return this.applyRates(parsed);
+      const ok = this.applyRates(parsed);
+      if (!ok) {
+        return 'error';
+      }
+      this.lastUpdatedAt = Date.now();
+      if (this.cache) {
+        const snapshot: CachedState = {
+          rates: parsed.rates,
+          base: parsed.base,
+          lastUpdatedAt: this.lastUpdatedAt,
+          selectedBaseCode: this._selectedBaseCurrency.code,
+          selectedTargetCode: this._selectedTargetCurrency.code
+        };
+        // Don't await — UI shouldn't wait on disk flush.
+        this.cache.save(snapshot);
+      }
+      return 'ok';
     } catch (err) {
       console.info('CurrencyViewModel: rate fetch failed; keeping previous rates.');
-      return false;
+      return 'error';
     }
   }
 }

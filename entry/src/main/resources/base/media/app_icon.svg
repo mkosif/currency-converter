@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="appBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2A60F0"/>
+      <stop offset="100%" stop-color="#1840B8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="220" fill="url(#appBg)"/>
+  <text x="512" y="380" text-anchor="middle" font-size="300" font-weight="800"
+        fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif">$</text>
+  <g stroke="#FFFFFF" stroke-width="52" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 414 462 L 414 596" />
+    <path d="M 414 596 L 372 554" />
+    <path d="M 414 596 L 456 554" />
+    <path d="M 612 596 L 612 462" />
+    <path d="M 612 462 L 570 504" />
+    <path d="M 612 462 L 654 504" />
+  </g>
+  <text x="512" y="800" text-anchor="middle" font-size="300" font-weight="800"
+        fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif">€</text>
+</svg>

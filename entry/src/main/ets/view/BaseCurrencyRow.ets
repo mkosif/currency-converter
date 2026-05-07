@@ -1,4 +1,5 @@
 import { CurrencyData } from '../viewmodel/CurrencyData';
+import { AppConstants } from '../common/AppConstants';
 
 @Component
 export struct BaseCurrencyRow {
@@ -55,7 +56,7 @@ export struct BaseCurrencyRow {
         .layoutWeight(1)
         .type(InputType.NUMBER_DECIMAL)
         .textAlign(TextAlign.Start)
-        .maxLength(12)
+        .maxLength(AppConstants.MAX_AMOUNT_INPUT_LENGTH)
         .fontSize(19)
         .height(`35vp`)
         .backgroundColor($r(`app.color.inputBackground`))

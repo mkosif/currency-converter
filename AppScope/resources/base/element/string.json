@@ -7,6 +7,14 @@
     {
       "name": "reason_internet",
       "value": "Call currency rates from API."
+    },
+    {
+      "name": "reason_network_info",
+      "value": "Detect connectivity to skip rate updates while offline."
+    },
+    {
+      "name": "reason_vibrate",
+      "value": "Provide tactile feedback on currency selection and rate updates."
     }
   ]
 }

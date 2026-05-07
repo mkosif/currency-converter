@@ -1,0 +1,88 @@
+{
+  "string": [
+    {
+      "name": "title",
+      "value": "Döviz Kuru"
+    },
+    {
+      "name": "sub_title",
+      "value": "Kurlar yalnızca bilgi amaçlıdır"
+    },
+    {
+      "name": "update",
+      "value": "Güncelle"
+    },
+    {
+      "name": "updated",
+      "value": "Güncellendi"
+    },
+    {
+      "name": "update_loading",
+      "value": "Güncelleniyor..."
+    },
+    {
+      "name": "update_failed",
+      "value": "Güncelleme başarısız"
+    },
+    {
+      "name": "update_offline",
+      "value": "Çevrimdışı"
+    },
+    {
+      "name": "updated_at_prefix",
+      "value": "Güncellendi"
+    },
+    {
+      "name": "reference",
+      "value": "Referans piyasa kuru"
+    },
+    {
+      "name": "search",
+      "value": "Para Birimi Ara"
+    },
+    {
+      "name": "no_results",
+      "value": "Sonuç yok"
+    },
+    {
+      "name": "splash_text",
+      "value": "Döviz Çevirici"
+    },
+    {
+      "name": "enter",
+      "value": "Tutar girin"
+    },
+    {
+      "name": "a11y_back",
+      "value": "Geri"
+    },
+    {
+      "name": "a11y_swap",
+      "value": "Para birimlerini değiştir"
+    },
+    {
+      "name": "a11y_update",
+      "value": "Kurları güncelle"
+    },
+    {
+      "name": "a11y_skip_splash",
+      "value": "Karşılama ekranını atla"
+    },
+    {
+      "name": "auto_refresh_off",
+      "value": "Otomatik yenile: Kapalı"
+    },
+    {
+      "name": "auto_refresh_15",
+      "value": "Otomatik yenile: 15 dk"
+    },
+    {
+      "name": "auto_refresh_30",
+      "value": "Otomatik yenile: 30 dk"
+    },
+    {
+      "name": "auto_refresh_60",
+      "value": "Otomatik yenile: 1 saat"
+    }
+  ]
+}

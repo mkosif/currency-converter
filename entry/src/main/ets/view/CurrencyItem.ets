@@ -40,6 +40,7 @@ export struct CurrencyItem {
     .width($r('app.string.w_100'))
     .height(48)
     .backgroundColor($r('app.color.currency_item_bg'))
+    .accessibilityText(`${this.currency.code} ${this.currency.name}`)
     .onClick(() => {
       if (this.onItemClick) {
         this.onItemClick(this.currency);

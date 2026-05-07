@@ -45,6 +45,14 @@
       "value": "Update failed"
     },
     {
+      "name": "update_offline",
+      "value": "Offline"
+    },
+    {
+      "name": "updated_at_prefix",
+      "value": "Updated"
+    },
+    {
       "name": "reference",
       "value": "Reference market exchange rate"
     },
@@ -75,6 +83,38 @@
     {
       "name": "core_url",
       "value": "api.frankfurter.app"
+    },
+    {
+      "name": "a11y_back",
+      "value": "Back"
+    },
+    {
+      "name": "a11y_swap",
+      "value": "Swap currencies"
+    },
+    {
+      "name": "a11y_update",
+      "value": "Update exchange rates"
+    },
+    {
+      "name": "a11y_skip_splash",
+      "value": "Skip splash screen"
+    },
+    {
+      "name": "auto_refresh_off",
+      "value": "Auto-refresh: Off"
+    },
+    {
+      "name": "auto_refresh_15",
+      "value": "Auto-refresh: 15 min"
+    },
+    {
+      "name": "auto_refresh_30",
+      "value": "Auto-refresh: 30 min"
+    },
+    {
+      "name": "auto_refresh_60",
+      "value": "Auto-refresh: 1 hour"
     }
   ]
 }
