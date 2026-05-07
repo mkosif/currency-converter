@@ -1,21 +1,8 @@
 import { CurrencyData, FrankfurterResponse } from './CurrencyData';
-import { rcp } from '@kit.RemoteCommunicationKit';
-import { connection } from '@kit.NetworkKit';
 import { common } from '@kit.AbilityKit';
 import { RatesCache, CachedState } from '../services/RatesCache';
+import { CurrencyApi } from '../services/CurrencyApi';
 import { AppConstants } from '../common/AppConstants';
-
-// 8 second hard ceiling so the Update chip can't hang on a stalled socket.
-const session = rcp.createSession({
-  requestConfiguration: {
-    transfer: {
-      timeout: {
-        connectMs: AppConstants.NETWORK_TIMEOUT_MS,
-        transferMs: AppConstants.NETWORK_TIMEOUT_MS
-      }
-    }
-  }
-});
 
 export type FetchResult = 'ok' | 'offline' | 'error';
 
@@ -271,47 +258,31 @@ export class CurrencyViewModel {
     }
   }
 
-  private async isOnline(): Promise<boolean> {
-    try {
-      return await connection.hasDefaultNet();
-    } catch (err) {
-      // If the connectivity API itself fails, optimistically attempt the
-      // fetch — RCP timeout will handle hangs.
-      return true;
-    }
-  }
-
   async fetchAndUpdateRates(): Promise<FetchResult> {
-    const online = await this.isOnline();
+    const online = await CurrencyApi.isOnline();
     if (!online) {
       return 'offline';
     }
-    const baseCode = AppConstants.DEFAULT_BASE_CODE;
-    const url = `${AppConstants.API_BASE_URL}/latest?from=${baseCode}`;
-    const request = new rcp.Request(url, 'GET');
-    try {
-      const response = await session.fetch(request);
-      const parsed = response.toJSON() as FrankfurterResponse;
-      const ok = this.applyRates(parsed);
-      if (!ok) {
-        return 'error';
-      }
-      this.lastUpdatedAt = Date.now();
-      if (this.cache) {
-        const snapshot: CachedState = {
-          rates: parsed.rates,
-          base: parsed.base,
-          lastUpdatedAt: this.lastUpdatedAt,
-          selectedBaseCode: this._selectedBaseCurrency.code,
-          selectedTargetCode: this._selectedTargetCurrency.code
-        };
-        // Don't await — UI shouldn't wait on disk flush.
-        this.cache.save(snapshot);
-      }
-      return 'ok';
-    } catch (err) {
-      console.info('CurrencyViewModel: rate fetch failed; keeping previous rates.');
+    const parsed = await CurrencyApi.fetchLatest(AppConstants.DEFAULT_BASE_CODE);
+    if (!parsed) {
       return 'error';
     }
+    const ok = this.applyRates(parsed);
+    if (!ok) {
+      return 'error';
+    }
+    this.lastUpdatedAt = Date.now();
+    if (this.cache) {
+      const snapshot: CachedState = {
+        rates: parsed.rates,
+        base: parsed.base,
+        lastUpdatedAt: this.lastUpdatedAt,
+        selectedBaseCode: this._selectedBaseCurrency.code,
+        selectedTargetCode: this._selectedTargetCurrency.code
+      };
+      // Don't await — UI shouldn't wait on disk flush.
+      this.cache.save(snapshot);
+    }
+    return 'ok';
   }
 }

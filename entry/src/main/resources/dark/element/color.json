@@ -47,6 +47,10 @@
     {
       "name": "text_secondary",
       "value": "#AEAEB2"
+    },
+    {
+      "name": "text_warning",
+      "value": "#FF9F0A"
     }
   ]
 }

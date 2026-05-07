@@ -1,6 +1,14 @@
 {
   "string": [
     {
+      "name": "EntryAbility_label",
+      "value": "Döviz Çevirici"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Canlı kurlarla para birimi çevirin"
+    },
+    {
       "name": "title",
       "value": "Döviz Kuru"
     },

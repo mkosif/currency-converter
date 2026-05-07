@@ -1,6 +1,14 @@
 {
   "string": [
     {
+      "name": "EntryAbility_label",
+      "value": "货币换算器"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "使用实时汇率换算货币"
+    },
+    {
       "name": "title",
       "value": "汇率"
     },

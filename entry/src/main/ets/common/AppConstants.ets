@@ -32,4 +32,8 @@ export class AppConstants {
 
   // Crown rotation step on baseAmount. Watch crown emits one event per detent.
   static readonly CROWN_AMOUNT_STEP: number = 1;
+
+  // After this many ms since lastUpdatedAt, the timestamp UI gets a warning
+  // tint and the widget shows a stale indicator.
+  static readonly STALE_THRESHOLD_MS: number = 60 * 60 * 1000;
 }

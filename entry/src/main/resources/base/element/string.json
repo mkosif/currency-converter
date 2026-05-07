@@ -6,11 +6,11 @@
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "Convert currencies at live exchange rates"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "Currency Converter"
     },
     {
       "name": "navDestination_width",

@@ -163,14 +163,27 @@ export struct ExchangePage {
 
   // Format like "Updated 10:42". Returns empty string when there has been
   // no successful fetch (cold install with no cache). The "Updated" prefix
-  // is read from string.json so it's localised in tr_TR / zh_CN.
+  // is read from string.json; the time component goes through Intl when
+  // available, falling back to manual zero-padded 24h formatting.
   private updatedAtText(): string {
     if (!this.lastUpdatedAt || this.lastUpdatedAt <= 0) {
       return '';
     }
     const d = new Date(this.lastUpdatedAt);
-    const hh = d.getHours().toString().padStart(2, '0');
-    const mm = d.getMinutes().toString().padStart(2, '0');
+    let timeStr: string;
+    try {
+      // toLocaleTimeString respects the active locale; hour12=false keeps
+      // the watch-friendly compact 24h form across locales.
+      timeStr = d.toLocaleTimeString('en', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      } as Intl.DateTimeFormatOptions);
+    } catch (_err) {
+      const hh = d.getHours().toString().padStart(2, '0');
+      const mm = d.getMinutes().toString().padStart(2, '0');
+      timeStr = `${hh}:${mm}`;
+    }
     let prefix = 'Updated';
     try {
       prefix = this.getUIContext().getHostContext()
@@ -178,7 +191,22 @@ export struct ExchangePage {
     } catch (_err) {
       // fallback to hardcoded prefix
     }
-    return `${prefix} ${hh}:${mm}`;
+    return `${prefix} ${timeStr}`;
+  }
+
+  // True if the last successful fetch is older than the stale threshold.
+  // Drives the warning tint on the timestamp text.
+  private isStale(): boolean {
+    if (!this.lastUpdatedAt || this.lastUpdatedAt <= 0) {
+      return false;
+    }
+    return (Date.now() - this.lastUpdatedAt) > AppConstants.STALE_THRESHOLD_MS;
+  }
+
+  private updatedAtFontColor(): Resource {
+    return this.isStale()
+      ? $r('app.color.text_warning')
+      : $r('app.color.text_secondary');
   }
 
   private updateFontColor(): Resource {
@@ -339,7 +367,7 @@ export struct ExchangePage {
               if (this.updatedAtText().length > 0) {
                 Text(this.updatedAtText())
                   .fontSize(9)
-                  .fontColor($r('app.color.text_secondary'))
+                  .fontColor(this.updatedAtFontColor())
                   .opacity(0.8)
                   .margin({ left: 6 })
               }

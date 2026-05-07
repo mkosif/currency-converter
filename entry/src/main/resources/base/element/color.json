@@ -71,6 +71,10 @@
     {
       "name": "text_secondary",
       "value": "#8E8E93"
+    },
+    {
+      "name": "text_warning",
+      "value": "#FF9500"
     }
   ]
 }
