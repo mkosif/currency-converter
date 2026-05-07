@@ -6,9 +6,9 @@ This demo showcases a simple yet effective smartwatch app that allows users to c
 
 # Preview
 <div>
-  <img src="./Screenshots/image1.png" width="25%"/>
-  <img src="./Screenshots/image2.png" width="25%"/>
-  <img src="./Screenshots/image3.png" width="25%"/>
+  <img src="./screenshots/image1.png" width="25%"/>
+  <img src="./screenshots/image2.png" width="25%"/>
+  <img src="./screenshots/image3.png" width="25%"/>
 </div>
 
 # Use Cases
