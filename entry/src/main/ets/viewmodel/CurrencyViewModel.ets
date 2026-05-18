@@ -186,8 +186,8 @@ export class CurrencyViewModel {
           .filter(c => this.getCurrencyByCode(c) !== undefined)
           .slice(0, AppConstants.RECENT_MAX);
       }
-      if (typeof state.autoRefreshIntervalMin === 'number'
-        && AppConstants.AUTO_REFRESH_OPTIONS_MIN.includes(state.autoRefreshIntervalMin)) {
+      if (typeof state.autoRefreshIntervalMin === 'number' &&
+        AppConstants.AUTO_REFRESH_OPTIONS_MIN.includes(state.autoRefreshIntervalMin)) {
         this.autoRefreshIntervalMin = state.autoRefreshIntervalMin;
       }
     }

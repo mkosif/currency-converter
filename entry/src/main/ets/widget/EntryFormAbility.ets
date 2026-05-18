@@ -81,8 +81,8 @@ export default class EntryFormAbility extends FormExtensionAbility {
       return null;
     }
     const parsed = await CurrencyApi.fetchLatest(AppConstants.DEFAULT_BASE_CODE);
-    if (!parsed || parsed.base !== AppConstants.DEFAULT_BASE_CODE
-      || !parsed.rates || typeof parsed.rates !== 'object') {
+    if (!parsed || parsed.base !== AppConstants.DEFAULT_BASE_CODE ||
+      !parsed.rates || typeof parsed.rates !== 'object') {
       return null;
     }
     const next: CachedState = {
@@ -105,8 +105,8 @@ export default class EntryFormAbility extends FormExtensionAbility {
     const rates: Record<string, number> = snapshot.rates || {};
     const baseRate: number = baseCode === AppConstants.DEFAULT_BASE_CODE ? 1.0 : rates[baseCode];
     const targetRate: number = targetCode === AppConstants.DEFAULT_BASE_CODE ? 1.0 : rates[targetCode];
-    if (typeof baseRate === 'number' && typeof targetRate === 'number'
-      && baseRate > 0 && targetRate > 0) {
+    if (typeof baseRate === 'number' && typeof targetRate === 'number' &&
+      baseRate > 0 && targetRate > 0) {
       const conv: number = targetRate / baseRate;
       const decimals: number = AppConstants.ZERO_DECIMAL_CODES.has(targetCode) ? 0 : 2;
       out.rate = conv.toFixed(decimals);
