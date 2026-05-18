@@ -15,10 +15,6 @@ export interface CachedState {
   autoRefreshIntervalMin?: number;
 }
 
-// Wraps `@ohos.data.preferences` so the ViewModel can persist the last
-// successful Frankfurter response, the success timestamp, and the user's
-// selected currency pair across launches. All errors are swallowed and
-// logged — persistence is best-effort and must never break the UI.
 export class RatesCache {
   private readonly context: common.Context;
   private prefPromise: Promise<preferences.Preferences>;
@@ -56,8 +52,6 @@ export class RatesCache {
     }
   }
 
-  // Updates only the selected pair; preserves previously cached rates so
-  // the next launch still has them even if the user just changed selection.
   async patchSelection(baseCode: string, targetCode: string): Promise<void> {
     const cur = await this.load();
     if (cur) {
@@ -75,7 +69,6 @@ export class RatesCache {
     });
   }
 
-  // Updates only the last entered base amount; preserves rates and selection.
   async patchAmount(amount: string): Promise<void> {
     const cur = await this.load();
     if (cur) {
@@ -93,7 +86,6 @@ export class RatesCache {
     });
   }
 
-  // Updates only the auto-refresh interval; preserves rates and selection.
   async patchAutoRefresh(intervalMin: number): Promise<void> {
     const cur = await this.load();
     if (cur) {
@@ -111,8 +103,6 @@ export class RatesCache {
     });
   }
 
-  // Updates the MRU list of recently selected currency codes; deduplicates
-  // (most recent at index 0) and trims to `max`.
   async patchRecents(codes: string[]): Promise<void> {
     const cur = await this.load();
     if (cur) {

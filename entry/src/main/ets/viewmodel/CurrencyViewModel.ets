@@ -10,23 +10,15 @@ export type FetchResult = 'ok' | 'offline' | 'error';
 export class CurrencyViewModel {
   private allCurrencyData: CurrencyData[] = [];
   private cache: RatesCache | null = null;
-  // Epoch ms of last successful fetch (network or restored from cache).
-  // 0 means "never updated" — UI hides the timestamp.
   lastUpdatedAt: number = 0;
-  // Restored from cache during init(); '' if never persisted.
   restoredBaseAmount: string = '';
-  // Most-recently-selected currency codes (most recent first). Populated from
-  // cache during init(); pushed to whenever the user picks a currency.
   recentCodes: string[] = [];
-  // Minutes between background refreshes; 0 disables auto-refresh.
   autoRefreshIntervalMin: number = 0;
 
   constructor() {
     this.allCurrencyData = this.initCurrencyData();
-    this._selectedBaseCurrency = this.allCurrencyData[0]; // USD
-    this._selectedTargetCurrency = this.allCurrencyData[1]; // EUR
-    // Network/cache work is intentionally NOT started here so the ViewModel
-    // stays unit-test friendly. Call init(context) from the host page.
+    this._selectedBaseCurrency = this.allCurrencyData[0];
+    this._selectedTargetCurrency = this.allCurrencyData[1];
   }
 
   private _selectedBaseCurrency: CurrencyData;
@@ -101,8 +93,6 @@ export class CurrencyViewModel {
     return AppConstants.ZERO_DECIMAL_CODES.has(code) ? 0 : 2;
   }
 
-  // Up to 4 decimals after `minDecimals`, trimming trailing zeros. When
-  // `minDecimals` is 0 the value is rounded to an integer.
   static formatAmount(value: number, minDecimals: number = 2): string {
     if (!Number.isFinite(value)) {
       return minDecimals > 0 ? `0.${'0'.repeat(minDecimals)}` : '0';
@@ -163,9 +153,6 @@ export class CurrencyViewModel {
     return updated > 0;
   }
 
-  // Loads previously cached state and triggers a background refresh. Safe
-  // to call once; subsequent calls re-bind the cache instance but keep
-  // existing rates.
   async init(context: common.Context): Promise<void> {
     this.cache = new RatesCache(context);
     const state = await this.cache.load();
@@ -204,13 +191,9 @@ export class CurrencyViewModel {
         this.autoRefreshIntervalMin = state.autoRefreshIntervalMin;
       }
     }
-    // Fire-and-forget refresh — UI reflects status via fetchAndUpdateRates'
-    // own callers when invoked from a tap.
     this.fetchAndUpdateRates();
   }
 
-  // Best-effort selection persistence; called whenever the user picks a
-  // new base/target currency.
   async persistSelection(): Promise<void> {
     if (!this.cache) {
       return;
@@ -221,8 +204,6 @@ export class CurrencyViewModel {
     );
   }
 
-  // Best-effort amount persistence; called when the user navigates away
-  // from the exchange page.
   async persistAmount(amount: string): Promise<void> {
     if (!this.cache) {
       return;
@@ -233,8 +214,6 @@ export class CurrencyViewModel {
     await this.cache.patchAmount(amount);
   }
 
-  // Update the auto-refresh interval and persist. Hosts read the new value
-  // back from `autoRefreshIntervalMin` and reschedule their own timers.
   setAutoRefreshIntervalMin(min: number): void {
     if (!AppConstants.AUTO_REFRESH_OPTIONS_MIN.includes(min)) {
       return;
@@ -245,8 +224,6 @@ export class CurrencyViewModel {
     }
   }
 
-  // Push a code onto the recent-selections MRU list (dedupe + cap).
-  // Persists asynchronously, fire-and-forget.
   pushRecent(code: string): void {
     if (!code || !this.getCurrencyByCode(code)) {
       return;
@@ -280,7 +257,6 @@ export class CurrencyViewModel {
         selectedBaseCode: this._selectedBaseCurrency.code,
         selectedTargetCode: this._selectedTargetCurrency.code
       };
-      // Don't await — UI shouldn't wait on disk flush.
       this.cache.save(snapshot);
     }
     return 'ok';

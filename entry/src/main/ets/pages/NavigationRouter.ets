@@ -16,8 +16,6 @@ struct NavigationRouter {
   @Provide baseAmount: string = '1.00';
   @Provide targetAmount: string = '';
   @Provide triggerMechanism: number = 1;
-  // Mirror of viewModel.lastUpdatedAt, surfaced as a Provide slot so the
-  // ExchangePage chip can react when cache load or a fetch completes.
   @Provide lastUpdatedAt: number = 0;
 
   aboutToAppear() {
@@ -32,8 +30,6 @@ struct NavigationRouter {
     this.pageInfos.pushPathByName('SplashPage', null);
   }
 
-  // Async cache + initial fetch. Updates @Provide slots once persisted
-  // selection and rates are restored.
   private async bootstrapViewModel(): Promise<void> {
     try {
       const ctx = this.getUIContext().getHostContext() as common.UIAbilityContext;

@@ -16,7 +16,6 @@ export class CurrencyData {
   }
 }
 
-// Frankfurter returns `rates` as an object keyed by ISO currency code.
 export interface FrankfurterResponse {
   amount: number;
   base: string;

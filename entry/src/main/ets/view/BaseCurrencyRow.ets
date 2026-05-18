@@ -24,7 +24,6 @@ export struct BaseCurrencyRow {
   build() {
     Row() {
       Row() {
-        // Currency flag
         Image(this.selectedBaseCurrency.flag)
           .width(20)
           .height(20)

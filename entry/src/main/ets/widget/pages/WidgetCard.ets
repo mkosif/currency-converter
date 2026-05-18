@@ -1,5 +1,3 @@
-// Home-screen rate tile. Reads the FormBindingData payload pushed by
-// EntryFormAbility via LocalStorageProp.
 let storage: LocalStorage = new LocalStorage();
 
 @Entry(storage)
@@ -33,8 +31,6 @@ struct WidgetCard {
     .alignItems(HorizontalAlign.Center)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
-      // Tap → ask the form ability to re-read the cache and push a fresh
-      // FormBindingData payload to this widget.
       postCardAction(this, {
         action: 'message',
         abilityName: 'EntryFormAbility',

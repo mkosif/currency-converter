@@ -44,8 +44,6 @@ export struct ExchangePage {
     drawing.ColorFilter.createBlendModeColorFilter(this.color1, drawing.BlendMode.SRC_IN);
   @State updateStatus: UpdateStatus = 'idle';
   @State isRefreshing: boolean = false;
-  // Mirrored into @State so the long-press menu re-renders when the user
-  // picks a new interval; the persisted source of truth is in the ViewModel.
   @State autoRefreshIntervalMin: number = 0;
   private statusResetTimer: number = -1;
   private updateRequestId: number = 0;
@@ -67,7 +65,6 @@ export struct ExchangePage {
       clearInterval(this.autoRefreshTimer);
       this.autoRefreshTimer = -1;
     }
-    // Persist whatever the user last typed; best-effort, fire-and-forget.
     this.viewModel.persistAmount(this.baseAmount);
   }
 
@@ -81,7 +78,6 @@ export struct ExchangePage {
     }
     const periodMs = this.autoRefreshIntervalMin * 60 * 1000;
     this.autoRefreshTimer = setInterval(() => {
-      // Skip if a manual update is already in flight; the chip flow handles it.
       if (this.updateStatus === 'loading') {
         return;
       }
@@ -102,7 +98,6 @@ export struct ExchangePage {
 
   recalcTarget() {
     if (!this.baseAmount || this.baseAmount.trim().length === 0) {
-      // Empty input → show placeholder rather than '0.00'.
       this.targetAmount = AppConstants.EMPTY_TARGET_PLACEHOLDER;
       return;
     }
@@ -117,9 +112,6 @@ export struct ExchangePage {
     this.recalcTarget();
   }
 
-  // Crown rotation tweaks the base amount in CROWN_AMOUNT_STEP increments.
-  // Negative angularVelocity = downward rotation = decrement; positive = up.
-  // Wrapped in try/catch — on devices without crown the API call no-ops.
   private onCrownEvent(velocity: number): void {
     try {
       const dir = velocity > 0 ? 1 : -1;
@@ -129,7 +121,6 @@ export struct ExchangePage {
       this.baseAmount = CurrencyViewModel.formatAmount(next, 2);
       this.recalcTarget();
     } catch (_err) {
-      // ignore
     }
   }
 
@@ -161,10 +152,6 @@ export struct ExchangePage {
     return $r('app.string.update');
   }
 
-  // Format like "Updated 10:42". Returns empty string when there has been
-  // no successful fetch (cold install with no cache). The "Updated" prefix
-  // is read from string.json; the time component goes through Intl when
-  // available, falling back to manual zero-padded 24h formatting.
   private updatedAtText(): string {
     if (!this.lastUpdatedAt || this.lastUpdatedAt <= 0) {
       return '';
@@ -172,8 +159,6 @@ export struct ExchangePage {
     const d = new Date(this.lastUpdatedAt);
     let timeStr: string;
     try {
-      // toLocaleTimeString respects the active locale; hour12=false keeps
-      // the watch-friendly compact 24h form across locales.
       timeStr = d.toLocaleTimeString('en', {
         hour: '2-digit',
         minute: '2-digit',
@@ -189,13 +174,10 @@ export struct ExchangePage {
       prefix = this.getUIContext().getHostContext()
         ?.resourceManager.getStringSync($r('app.string.updated_at_prefix').id) ?? prefix;
     } catch (_err) {
-      // fallback to hardcoded prefix
     }
     return `${prefix} ${timeStr}`;
   }
 
-  // True if the last successful fetch is older than the stale threshold.
-  // Drives the warning tint on the timestamp text.
   private isStale(): boolean {
     if (!this.lastUpdatedAt || this.lastUpdatedAt <= 0) {
       return false;
@@ -221,8 +203,6 @@ export struct ExchangePage {
       : $r('app.color.updated_bg');
   }
 
-  // Shared fetch plumbing for both the chip tap and pull-to-refresh.
-  // `onComplete` runs after status is set, before the auto-reset timer.
   private startFetch(onComplete: () => void): void {
     if (this.updateStatus === 'loading') {
       return;
@@ -286,7 +266,6 @@ export struct ExchangePage {
 
   private onPullRefresh(): void {
     if (this.updateStatus === 'loading') {
-      // Chip tap already in flight — drop the pull spinner immediately.
       this.isRefreshing = false;
       return;
     }

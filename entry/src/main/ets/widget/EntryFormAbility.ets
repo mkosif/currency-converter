@@ -14,9 +14,6 @@ class FormPayload {
   lastUpdated: string = '—';
 }
 
-// Form ability that powers the home-screen rate tile. onAddForm must return
-// synchronously, so it returns a placeholder and kicks off an async refresh
-// once the cache has been read or a live fetch has resolved.
 export default class EntryFormAbility extends FormExtensionAbility {
   onAddForm(want: Want): formBindingData.FormBindingData {
     const params = want.parameters as Record<string, Object> | undefined;
@@ -28,14 +25,10 @@ export default class EntryFormAbility extends FormExtensionAbility {
     return formBindingData.createFormBindingData(placeholder);
   }
 
-  // Scheduled or system-triggered update: try the network first, fall back
-  // to whatever the cache last saw.
   onUpdateForm(formId: string): void {
     this.refresh(formId, true);
   }
 
-  // Triggered by `postCardAction({action: 'message', ...})` from the widget
-  // UI when the user taps the card. Always tries a live fetch.
   onFormEvent(formId: string, message: string): void {
     hilog.info(0, TAG, 'onFormEvent %{public}s msg=%{public}s', formId, message);
     this.refresh(formId, true);
@@ -45,10 +38,6 @@ export default class EntryFormAbility extends FormExtensionAbility {
     hilog.info(0, TAG, 'onRemoveForm %{public}s', formId);
   }
 
-  // `tryNetwork = true`: attempt a live Frankfurter fetch; on success, write
-  // the new rates back to the shared cache so the main app sees them, then
-  // push the resulting payload to the widget.
-  // On any network failure, fall back to whatever the cache currently holds.
   private async refresh(formId: string, tryNetwork: boolean): Promise<void> {
     try {
       const cache = new RatesCache(this.context);
@@ -70,12 +59,10 @@ export default class EntryFormAbility extends FormExtensionAbility {
     }
   }
 
-  // Returns the new merged CachedState if the live fetch is well-formed.
   private mergeLive(prior: CachedState | null, live: CachedState): CachedState {
     if (!prior) {
       return live;
     }
-    // Preserve user prefs (selection, recents, amount, auto-refresh).
     return {
       rates: live.rates,
       base: live.base,
@@ -88,8 +75,6 @@ export default class EntryFormAbility extends FormExtensionAbility {
     };
   }
 
-  // Performs a live Frankfurter fetch via the shared CurrencyApi. Validates
-  // the response shape; returns null on offline / malformed / failure.
   private async fetchLive(): Promise<CachedState | null> {
     const online = await CurrencyApi.isOnline();
     if (!online) {
