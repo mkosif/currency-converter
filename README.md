@@ -22,7 +22,7 @@ Currency Converter is a fully functional wearable watch application built for Ha
 - Recent currencies, the last entered amount, and the chosen pair are remembered across launches.
 - 14 currency support.
 
-# Tech Stack (Languages, Frameworks, Tools, Libraries, *3rd Party)
+# Tech Stack
 
 - ArkTS on HarmonyOS NEXT (Stage Model)
 - @kit.ArkGraphics2D — common2D for RGBA colors; drawing for ColorFilter blend effects on icons
@@ -83,6 +83,7 @@ entry/src/main/ets/
 * Huawei Watch 5
 * DevEco Studio Simulator
 
-# License (MIT)
+# License
 
-Currency Converter is distributed under the terms of the MIT License. See the [LICENSE](/LICENSE) for more information.
+**Currency Converter** is distributed under the terms of the MIT License.
+See the [LICENSE](/LICENSE) for more information.
